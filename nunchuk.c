@@ -3,6 +3,7 @@
 #include <linux/module.h>
 #include <linux/i2c.h>
 #include <linux/fs.h>
+#include <linux/delay.h>
 #include <linux/kfifo.h>
 #include <asm/uaccess.h>
 
@@ -152,12 +153,12 @@ static ssize_t nunchuk_read(struct file *filp, char *buffer, size_t length,
     int status = 0;
     char reg_values[6];
     
-    if(length != ARRAY_SIZE(regs_to_read))
+    if(length != ARRAY_SIZE(reg_values))
     {
         return 0;
     }
     
-    for(i = 0; i < ARRAY_SIZE(regs_to_read); i++)
+    for(i = 0; i < ARRAY_SIZE(reg_values); i++)
     {
         status = nunchuk_read_registers(nunchuk_client, reg_values, ARRAY_SIZE(reg_values));
 	if (status < 0)
