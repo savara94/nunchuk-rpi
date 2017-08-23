@@ -120,6 +120,8 @@ static int init_nunchuk_module(void)
 
 static void deinit_nunchuk_module(void)
 {
+    i2c_unregister_device(nunchuk_client);
+    
     unregister_chrdev(major_number, DEVICE_NAME);
 }
 
