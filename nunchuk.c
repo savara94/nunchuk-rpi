@@ -38,10 +38,20 @@ static struct file_operations fops = {
 static int nunchuk_handshake(void)
 {
     int status;
-    char buffer[] = { 0x40, 0x00 };
+    char first_sequence[] = { 0xF0, 0x55 };
+	char second_sequence[] = { 0xFB, 0x00 } ;
     
-    status = i2c_master_send(nunchuk_client, buffer, ARRAY_SIZE(buffer));
-    
+    status = i2c_master_send(nunchuk_client, first_sequence,
+							 ARRAY_SIZE(first_sequence));
+    if (status < 0)
+    {
+        return RET_ERR;
+    }
+
+	udelay(1);
+	
+	status = i2c_master_send(nunchuk_client, second_sequence,
+							 ARRAY_SIZE(second_sequence));
     if (status < 0)
     {
         return RET_ERR;
@@ -54,13 +64,17 @@ static int nunchuk_read_registers(struct i2c_client *client, u8 *buf, int buf_si
 	int status;
 
 	buf[0] = 0x00;
-        
+    
+	mdelay(10);
+    
 	status = i2c_master_send(client, buf, 1);
         
 	if (status < 0)
         {
             return RET_ERR;
 	}
+
+	mdelay(10);
 
 	return i2c_master_recv(client, buf, buf_size);
 }
