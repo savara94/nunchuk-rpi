@@ -47,22 +47,11 @@ static int nunchuk_handshake(void)
         return RET_ERR;
     }
     
-    buffer[0] = 0x00;
-    
-    status = i2c_master_send(nunchuk_client, buffer, 1);
-    
-    if (status < 0)
-    {
-        return RET_ERR;
-    }
-    
     return RET_SUCCESS;
 }
 
 static int nunchuk_read_registers(struct i2c_client *client, u8 *buf, int buf_size) {
 	int status;
-
-	mdelay(10);
 
 	buf[0] = 0x00;
         
@@ -72,8 +61,6 @@ static int nunchuk_read_registers(struct i2c_client *client, u8 *buf, int buf_si
         {
             return RET_ERR;
 	}
-
-	mdelay(10);
 
 	return i2c_master_recv(client, buf, buf_size);
 }
