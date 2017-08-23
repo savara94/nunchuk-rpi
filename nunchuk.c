@@ -5,6 +5,7 @@
 #include <linux/fs.h>
 #include <linux/kfifo.h>
 #include <asm/uaccess.h>
+
 #include "nunchuk.h"
 
 /* DEFINES */
@@ -56,6 +57,26 @@ static int nunchuk_handshake(void)
     
     return RET_SUCCESS;
 }
+
+static int nunchuk_read_registers(struct i2c_client *client, u8 *buf, int buf_size) {
+	int status;
+
+	mdelay(10);
+
+	buf[0] = 0x00;
+        
+	status = i2c_master_send(client, buf, 1);
+        
+	if (status < 0)
+        {
+            return RET_ERR;
+	}
+
+	mdelay(10);
+
+	return i2c_master_recv(client, buf, buf_size);
+}
+
 
 /* FUNCTIONS */
 static int init_nunchuk_module(void)
@@ -129,8 +150,7 @@ static ssize_t nunchuk_read(struct file *filp, char *buffer, size_t length,
 {
     ssize_t i = 0;
     int status = 0;
-    char regs_to_read[] = { 0x00, 0x01 };
-    char reg_values[ARRAY_SIZE(regs_to_read)];
+    char reg_values[6];
     
     if(length != ARRAY_SIZE(regs_to_read))
     {
@@ -139,19 +159,14 @@ static ssize_t nunchuk_read(struct file *filp, char *buffer, size_t length,
     
     for(i = 0; i < ARRAY_SIZE(regs_to_read); i++)
     {
-        status = i2c_master_send(nunchuk_client, &regs_to_read[i], 1);
-        if (status < 0)
+        status = nunchuk_read_registers(nunchuk_client, reg_values, ARRAY_SIZE(reg_values));
+	if (status < 0)
         {
-            printk(KERN_INFO "i2c send failed!");
-            return 0;
-        }
+		printk(KERN_INFO "Error reading nunchuk registers: %0x", status);
+		return 0;
+	}
         
-        status = i2c_master_recv(nunchuk_client, &reg_values[i], 1);
-        if (status < 0)
-        {
-            printk(KERN_INFO "i2c recv failed!");
-            return 0;
-        }
+        
         
         put_user(reg_values[i], buffer + i);
     }
