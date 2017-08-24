@@ -104,7 +104,7 @@ static int init_nunchuk_module(void)
         return -ENODEV;
     }
     
-    nunchuk_client = i2c_new_dummy (bus_adapter, NUNCHUK_I2C_ADDRESS);
+    nunchuk_client = i2c_new_dummy(bus_adapter, NUNCHUK_I2C_ADDRESS);
     
     if (nunchuk_client == NULL)
     {
