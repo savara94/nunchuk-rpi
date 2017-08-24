@@ -155,6 +155,8 @@ static ssize_t nunchuk_read(struct file *filp, char *buffer, size_t length,
     ssize_t i = 0;
     int status = 0;
     char reg_values[6];
+    char c_pressed = 0;
+    char z_pressed = 0;
     
     if(length != ARRAY_SIZE(reg_values))
     {
@@ -169,13 +171,19 @@ static ssize_t nunchuk_read(struct file *filp, char *buffer, size_t length,
 		printk(KERN_INFO "Error reading nunchuk registers: %0x", status);
 		return 0;
 	}
-        
-        
-        
-        put_user(reg_values[i], buffer + i);
     }
     
-    printk(KERN_INFO "i2c_data: %d %d",reg_values[0], reg_values[1]); 
+    c_pressed = reg_values[5] & 0x02;
+    c_pressed >>= 1;
+    c_pressed ^= 0x01;
+    
+    z_pressed = reg_values[5] & 0x01;
+    z_pressed ^= 0x01;
+    
+    put_user(reg_values[0], buffer + 0);
+    put_user(reg_values[1], buffer + 1);
+    put_user(c_pressed, buffer + 2);
+    put_user(z_pressed, buffer + 3);
 
     return length;
 }

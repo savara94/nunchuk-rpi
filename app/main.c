@@ -1,82 +1,72 @@
 #include <SDL2/SDL.h>
+#include <unistd.h>
 #include <stdlib.h>
+#include "engine.h"
+#include "device.h"
 
-SDL_Window *o;
-SDL_Renderer *r;
+/*SDL_Window *o;
+SDL_Renderer *r;*/
+int32_t quit = 1;
 
-void draw_circle(SDL_Point center, int radius)
+int32_t main()
 {
-    for (int w = 0; w < radius * 2; w++)
+    /*circle_t circle = 
     {
-        for (int h = 0; h < radius * 2; h++)
         {
-            int dx = radius - w; // horizontal offset
-            int dy = radius - h; // vertical offset
-            if ((dx*dx + dy*dy) <= (radius * radius))
-            {
-                SDL_RenderDrawPoint(r, center.x + dx, center.y + dy);
-            }
-        }
+            CENTER_X,
+            CENTER_Y,
+        },
+      DEFAULT_RADIUS
+    };*/
+    
+    nunchuk_t readings;
+    
+    int32_t fd = open_device(NUNCHUK_DEVICE);
+    
+    if (fd == RET_ERR)
+    {
+        return RET_ERR;
     }
-}
 
-int main()
-{
-    SDL_Event e;
-    SDL_Point q = { 320, 240};
-    int i =1;
+    /*SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_Init(SDL_INIT_VIDEO);
-
-    o = SDL_CreateWindow("Game test",
+    o = SDL_CreateWindow("Nunchuk",
                             SDL_WINDOWPOS_UNDEFINED,
                             SDL_WINDOWPOS_UNDEFINED,
-                            640,
-                            480,
+                            WIDTH_RESOLUTION,
+                            HEIGHT_RESOLUTION,
                             SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
-    r = SDL_CreateRenderer(o, -1,SDL_RENDERER_ACCELERATED);
+    r = SDL_CreateRenderer(o, -1, SDL_RENDERER_ACCELERATED);*/
 
-    while(i)
+    while(quit)
     {
-        while(SDL_PollEvent(&e) !=0)
+        if (read_device(fd, &readings) == RET_ERR)
         {
-            if(e.type == SDL_QUIT)
-                i=0;
-            else if(e.type == SDL_KEYDOWN)
-            {
-                switch(e.key.keysym.sym)
-                {
-                case SDLK_ESCAPE:
-                case SDLK_q:
-                    i=0;
-                break;
-                case SDLK_UP:
-                    q.y -=10;
-                break;
-                case SDLK_DOWN:
-                    q.y +=10;
-                break;
-                case SDLK_RIGHT:
-                    q.x +=10;
-                break;
-                case SDLK_LEFT:
-                    q.x -=10;
-                break;
-                }
-            }
+            break;
         }
-        SDL_SetRenderDrawColor(r,0,0,255,255);
+        
+        printf("%u %u %u %u\n", (unsigned int)readings.x_axis,
+               (unsigned int)readings.y_axis,
+               (unsigned int)readings.c_pressed,
+               (unsigned int)readings.z_pressed);
+        
+        usleep(500000);
+        /*SDL_SetRenderDrawColor(r,0,0,255,255);
         SDL_RenderClear(r);
         SDL_SetRenderDrawColor(r,0,0,0,255);
-        draw_circle(q, 20);
-        /*SDL_RenderFillRect(r,&q);*/
-        SDL_RenderPresent(r);
+        draw_circle(r, &circle);
+        SDL_RenderPresent(r);*/
+    }
+    
+    if (close_device(fd) == RET_ERR)
+    {
+        return RET_ERR;
     }
 
-    SDL_DestroyWindow(o);
+    /*SDL_DestroyWindow(o);
     SDL_DestroyRenderer(r);
-    SDL_Quit();
+    SDL_Quit();*/
 
     return 0;
 }
