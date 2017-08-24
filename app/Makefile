@@ -1,7 +1,7 @@
 APP_NAME=app
 CC=gcc
-CFLAGS=-Wall -Wextra -Werror
-LIBS=-lSDL2
+CFLAGS=-Wall -Wextra
+LIBS=-lSDL2 -lpthread
 SRC=main.c engine.c device.c
 
 all:
